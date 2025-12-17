@@ -1,6 +1,7 @@
 import esbuild from "esbuild";
 import process from "process";
-import builtins from "builtin-modules";
+import { builtinModules } from "module";
+import { existsSync, mkdirSync, copyFileSync } from "fs";
 
 const banner =
 `/*
@@ -11,11 +12,53 @@ if you want to view the source, please visit the github repository of this plugi
 
 const prod = (process.argv[2] === "production");
 
+// Detect entry point: prefer src/main.ts, fallback to main.ts
+const hasSrcMain = existsSync("src/main.ts");
+const hasRootMain = existsSync("main.ts");
+
+if (hasSrcMain && hasRootMain) {
+  console.warn("WARNING: Both src/main.ts and main.ts exist. Using src/main.ts as entry point.");
+  console.warn("Consider removing one to avoid confusion.");
+}
+if (!hasSrcMain && !hasRootMain) {
+  console.error("ERROR: Neither src/main.ts nor main.ts found!");
+  process.exit(1);
+}
+
+// Set entry point based on what exists
+const entryPoint = hasSrcMain ? "src/main.ts" : "main.ts";
+
+// Build to dist/ for production releases, root for local development
+const outfile = prod ? "dist/main.js" : "main.js";
+
+// Ensure dist/ directory exists for production builds
+if (prod && !existsSync("dist")) {
+	mkdirSync("dist", { recursive: true });
+}
+
+// Print helpful messages about build output location
+if (prod) {
+	console.log("\n✓ Production build complete!");
+	console.log("📦 All release files are in the dist/ folder:");
+	console.log("   - dist/main.js (upload as main.js)");
+	if (existsSync("manifest.json")) {
+		console.log("   - dist/manifest.json (upload as manifest.json)");
+	}
+	if (existsSync("styles.css")) {
+		console.log("   - dist/styles.css (upload as styles.css)");
+	}
+	console.log("\n💡 Upload all files from dist/ folder to GitHub releases\n");
+} else {
+	console.log("\n✓ Development build running in watch mode");
+	console.log("📝 Building to main.js in root (for local testing)");
+	console.log("💡 For production builds, run: npm run build\n");
+}
+
 const context = await esbuild.context({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ["src/main.ts"],
+	entryPoints: [entryPoint],
 	bundle: true,
 	external: [
 		"obsidian",
@@ -31,18 +74,27 @@ const context = await esbuild.context({
 		"@lezer/common",
 		"@lezer/highlight",
 		"@lezer/lr",
-		...builtins],
+		...builtinModules],
 	format: "cjs",
 	target: "es2018",
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
-	outfile: "main.js",
+	outfile: outfile,
 	minify: prod,
 });
 
 if (prod) {
 	await context.rebuild();
+	
+	// Copy release files to dist/ for convenience
+	if (existsSync("manifest.json")) {
+		copyFileSync("manifest.json", "dist/manifest.json");
+	}
+	if (existsSync("styles.css")) {
+		copyFileSync("styles.css", "dist/styles.css");
+	}
+	
 	process.exit(0);
 } else {
 	await context.watch();

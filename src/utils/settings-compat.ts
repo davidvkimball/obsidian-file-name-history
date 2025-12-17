@@ -5,6 +5,11 @@
 import { Setting, requireApiVersion } from 'obsidian';
 import * as Obsidian from 'obsidian';
 
+interface SettingGroupInstance {
+  setHeading(heading: string): void;
+  addSetting(cb: (setting: Setting) => void): void;
+}
+
 /**
  * Interface that works with both SettingGroup and fallback container
  */
@@ -32,7 +37,11 @@ export function createSettingsGroup(
   if (requireApiVersion('1.11.0')) {
     // Use SettingGroup - it's guaranteed to exist at runtime if requireApiVersion returns true.
     // We access it via the namespace import to avoid requiring the type in older API d.ts files.
-    const SettingGroupCtor = (Obsidian as any).SettingGroup;
+    type ObsidianWithSettingGroup = typeof Obsidian & {
+      SettingGroup: new (containerEl: HTMLElement) => SettingGroupInstance;
+    };
+    const ObsidianTyped = Obsidian as unknown as ObsidianWithSettingGroup;
+    const SettingGroupCtor = ObsidianTyped.SettingGroup;
     const group = new SettingGroupCtor(containerEl);
     if (heading) {
       group.setHeading(heading);

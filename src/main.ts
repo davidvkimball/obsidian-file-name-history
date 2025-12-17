@@ -13,7 +13,11 @@ export default class AliasFilenameHistoryPlugin extends Plugin {
     await this.loadSettings();
     this.aliasProcessor = new AliasProcessor(this.app, this.settings);
     this.addSettingTab(new AliasFilenameHistorySettingTab(this.app, this));
-    this.registerEvent(this.app.vault.on('rename', this.handleRename.bind(this)));
+    this.registerEvent(
+      this.app.vault.on('rename', (file: TAbstractFile, oldPath: string) => {
+        this.handleRename(file, oldPath);
+      })
+    );
   }
 
   onunload() {
@@ -27,7 +31,8 @@ export default class AliasFilenameHistoryPlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const loadedData = (await this.loadData()) as Partial<AliasFilenameHistorySettings> | null;
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
   }
 
   async saveSettings() {

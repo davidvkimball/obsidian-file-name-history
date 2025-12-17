@@ -40,7 +40,7 @@ export class AliasProcessor {
 
     if (toAdd.length === 0) return;
 
-    await this.app.fileManager.processFrontMatter(file, (fm) => {
+    await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
       let aliases = fm.aliases;
       if (!Array.isArray(aliases)) {
         // If there's no frontmatter at all, we need to create it to add aliases
@@ -51,14 +51,15 @@ export class AliasProcessor {
         fm.aliases = aliases;
       }
 
+      const aliasesArray = aliases as string[];
       const existing = new Set<string>(
-        this.settings.caseSensitive ? aliases : aliases.map((a: string) => a.toLowerCase())
+        this.settings.caseSensitive ? aliasesArray : aliasesArray.map((a: string) => a.toLowerCase())
       );
 
       for (const name of toAdd) {
         const checkName = this.settings.caseSensitive ? name : name.toLowerCase();
         if (!existing.has(checkName)) {
-          aliases.push(name);
+          aliasesArray.push(name);
           existing.add(checkName);
         }
       }
