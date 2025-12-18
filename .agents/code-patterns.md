@@ -2,7 +2,6 @@
 Source: Complete examples from obsidian-sample-plugin, obsidian-plugin-docs, and obsidian-api (API is authoritative)
 Last synced: See sync-status.json for authoritative sync dates
 Update frequency: Check reference repos for new patterns
-Applicability: Plugin
 -->
 
 # Code Patterns

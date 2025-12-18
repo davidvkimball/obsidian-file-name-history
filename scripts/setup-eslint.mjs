@@ -387,6 +387,123 @@ function fixBuiltinModules(esbuildConfigPath, projectRoot) {
       }
     }
     
+    // Ensure outfile is set to "main.js" (always output to root)
+    // Remove any production/development logic that outputs to dist/
+    const hasProdLogic = /const\s+prod\s*=.*process\.argv/.test(content);
+    const hasDistOutput = /outfile.*dist\/main\.js/.test(content);
+    
+    // Remove production logic if it exists (simplify to always output to root)
+    if (hasProdLogic) {
+      // Remove const prod line
+      content = content.replace(/const\s+prod\s*=.*process\.argv[^;]+;\s*\n?/g, '');
+      // Remove dist/ directory creation logic
+      content = content.replace(/if\s*\(prod\s*&&\s*!existsSync\(["']dist["']\)\)\s*\{[^}]+\}\s*\n?/g, '');
+      // Remove production-specific messages
+      content = content.replace(/if\s*\(prod\)\s*\{[^}]+\}\s*else\s*\{[^}]+\}\s*\n?/g, '');
+      updated = true;
+      console.log('✓ Updated esbuild.config.mjs: removed production/development split (always outputs to root)');
+    }
+    
+    // Ensure outfile is set to "main.js" (not dist/main.js)
+    if (hasDistOutput || /outfile:\s*outfile/.test(content)) {
+      // Replace any outfile variable or dist/main.js with simple "main.js"
+      content = content.replace(
+        /(\s+)outfile:\s*(outfile|["']dist\/main\.js["']|["']main\.js["']),?/,
+        '$1outfile: "main.js",'
+      );
+      // Remove outfile variable declaration if it exists
+      content = content.replace(/const\s+outfile\s*=.*?;\s*\n?/g, '');
+      updated = true;
+      console.log('✓ Updated esbuild.config.mjs: fixed outfile to always output to root');
+    } else if (!/outfile:/.test(content)) {
+      // Add outfile if it doesn't exist
+      const contextConfigMatch = content.match(/(esbuild\.context\s*\(\s*\{[^}]*?)(\n\s*\})/s);
+      if (contextConfigMatch) {
+        const indent = contextConfigMatch[1].match(/(\n\s+)$/)?.[1] || '\n\t';
+        content = content.replace(
+          /(esbuild\.context\s*\(\s*\{[^}]*?)(\n\s*\})/s,
+          `$1${indent}outfile: "main.js",$2`
+        );
+        updated = true;
+        console.log('✓ Updated esbuild.config.mjs: added outfile to esbuild.context');
+      }
+    }
+    
+    // Fix build mode detection to handle both "build" and "production" arguments
+    // SIMPLE AND DIRECT: Check if production is missing, then fix it
+    const hasProductionInCheck = /isOneTimeBuild.*production/.test(content) || 
+                                  /args\.includes\(["']production["']\)/.test(content);
+    const hasIsOneTimeBuild = /const\s+isOneTimeBuild\s*=/.test(content);
+    const hasArgsSlice = /const\s+args\s*=\s*process\.argv\.slice\(2\)/.test(content);
+    
+    // If we have isOneTimeBuild but no production check, FIX IT
+    if (hasIsOneTimeBuild && !hasProductionInCheck) {
+      // Ensure args.slice exists first
+      if (!hasArgsSlice) {
+        content = content.replace(
+          /(const\s+isOneTimeBuild\s*=)/,
+          'const args = process.argv.slice(2);\n$1'
+        );
+        updated = true;
+      }
+      
+      // Now fix the actual check - use a simple line-by-line approach
+      const lines = content.split('\n');
+      let fixed = false;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        // If this line has isOneTimeBuild with args.includes("build") but no production
+        if (/const\s+isOneTimeBuild\s*=/.test(line) && /args\.includes\(["']build["']\)/.test(line) && !/production/.test(line)) {
+          lines[i] = line.replace(
+            /(args\.includes\(["']build["']\))/,
+            'args.includes("build") || args.includes("production")'
+          );
+          fixed = true;
+          updated = true;
+          break;
+        }
+        // If this line has isOneTimeBuild with process.argv[2] === "build"
+        else if (/const\s+isOneTimeBuild\s*=/.test(line) && /process\.argv\[2\]/.test(line) && !/production/.test(line)) {
+          lines[i] = line.replace(
+            /(process\.argv\[2\]\s*===?\s*["']build["'])/,
+            'args.includes("build") || args.includes("production")'
+          );
+          fixed = true;
+          updated = true;
+          break;
+        }
+        // If this is the isOneTimeBuild line but the check is on the next line
+        else if (/const\s+isOneTimeBuild\s*=/.test(line) && i + 1 < lines.length) {
+          const nextLine = lines[i + 1];
+          if (/args\.includes\(["']build["']\)/.test(nextLine) && !/production/.test(nextLine)) {
+            lines[i + 1] = nextLine.replace(
+              /(args\.includes\(["']build["']\))/,
+              'args.includes("build") || args.includes("production")'
+            );
+            fixed = true;
+            updated = true;
+            break;
+          }
+        }
+      }
+      
+      if (fixed) {
+        content = lines.join('\n');
+        console.log('✓ Updated esbuild.config.mjs: build mode detection now supports both "build" and "production" arguments');
+      }
+    } else if (!hasIsOneTimeBuild && !hasArgsSlice) {
+      // Add build mode detection if it doesn't exist
+      const watchModeMatch = content.match(/(await\s+context\.watch\(\))/);
+      if (watchModeMatch) {
+        const beforeWatch = content.substring(0, watchModeMatch.index);
+        const afterWatch = content.substring(watchModeMatch.index);
+        const buildModeCheck = `\n// Check if this is a one-time build or watch mode\n// Check for "build" or "production" argument - supports both patterns\nconst args = process.argv.slice(2);\nconst isOneTimeBuild = args.includes("build") || args.includes("production");\n\nif (isOneTimeBuild) {\n\t// Production build: build once and exit\n\tawait context.rebuild();\n\tconsole.log("\\n✓ Build complete!");\n\tconsole.log("📦 Release files:");\n\tconsole.log("   - main.js");\n\tif (existsSync("manifest.json")) {\n\t\tconsole.log("   - manifest.json");\n\t}\n\tif (existsSync("styles.css")) {\n\t\tconsole.log("   - styles.css");\n\t}\n\tconsole.log("\\n💡 Upload these files to GitHub releases\\n");\n\tawait context.dispose();\n\tprocess.exit(0);\n} else {\n\t// Development mode: watch for changes\n\tconsole.log("\\n✓ Development build running in watch mode");\n\tconsole.log("📝 Building to main.js in root");\n\tconsole.log("💡 For production builds, run: npm run build\\n");\n\t`;
+        content = beforeWatch + buildModeCheck + afterWatch;
+        updated = true;
+        console.log('✓ Updated esbuild.config.mjs: added build mode detection (supports both "build" and "production")');
+      }
+    }
+    
     if (updated) {
       writeFileSync(esbuildConfigPath, content, 'utf8');
       return true;
