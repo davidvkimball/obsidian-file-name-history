@@ -1,6 +1,6 @@
 import esbuild from "esbuild";
 import process from "process";
-import { builtinModules } from "module";
+import { builtinModules } from 'node:module';
 import { existsSync } from "fs";
 
 const banner =
@@ -27,6 +27,8 @@ if (!hasSrcMain && !hasRootMain) {
 const entryPoint = hasSrcMain ? "src/main.ts" : "main.ts";
 
 // Always build to root for simplicity
+const outfile = "main.js";
+
 const context = await esbuild.context({
 	banner: {
 		js: banner,
@@ -53,11 +55,12 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: "inline",
 	treeShaking: true,
-	outfile: "main.js",
+	outfile: outfile,
 	minify: false,
 });
 
 // Check if this is a one-time build or watch mode
+// Check for "build" or "production" argument - supports both patterns
 const args = process.argv.slice(2);
 const isOneTimeBuild = args.includes("build") || args.includes("production");
 
@@ -74,11 +77,12 @@ if (isOneTimeBuild) {
 		console.log("   - styles.css");
 	}
 	console.log("\n💡 Upload these files to GitHub releases\n");
+	await context.dispose();
 	process.exit(0);
 } else {
 	// Development mode: watch for changes
 	console.log("\n✓ Development build running in watch mode");
 	console.log("📝 Building to main.js in root");
-	console.log("💡 For production builds, run: npm run build\n");
+	console.log("💡 For production builds, run: pnpm build\n");
 	await context.watch();
 }
