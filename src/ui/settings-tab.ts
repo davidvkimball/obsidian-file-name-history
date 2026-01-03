@@ -24,7 +24,7 @@ export class AliasFilenameHistorySettingTab extends PluginSettingTab {
       void this.plugin.saveSettings();
     };
 
-    const generalGroup = createSettingsGroup(containerEl);
+    const generalGroup = createSettingsGroup(containerEl, undefined, 'alias-file-name-history');
 
     // General behavior settings (grouped, no heading)
     generalGroup.addSetting((setting) => {
@@ -91,9 +91,9 @@ export class AliasFilenameHistorySettingTab extends PluginSettingTab {
         );
     });
 
-    const filteringGroup = createSettingsGroup(containerEl, 'Filtering');
-    const foldersGroup = createSettingsGroup(containerEl, 'Folders');
-    const advancedGroup = createSettingsGroup(containerEl, 'Advanced');
+    const filteringGroup = createSettingsGroup(containerEl, 'Filtering', 'alias-file-name-history');
+    const foldersGroup = createSettingsGroup(containerEl, 'Folders', 'alias-file-name-history');
+    const advancedGroup = createSettingsGroup(containerEl, 'Advanced', 'alias-file-name-history');
 
     // Filtering settings
     filteringGroup.addSetting((setting) => {
