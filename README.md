@@ -1,6 +1,6 @@
 # Alias File Name History Plugin for Obsidian
 
-This plugin tracks file name and parent folder name changes for Markdown files in Obsidian, storing old names as aliases in the file's properties (frontmatter). It supports customizable ignore patterns, debouncing, and folder-specific tracking, making it ideal for generating redirect rules (e.g., for Astro templates).
+This plugin tracks file name and parent folder name changes for Markdown files in Obsidian, storing old names as aliases in the file's properties. It supports customizable ignore patterns, debouncing, and folder-specific tracking, making it ideal for generating redirect rules (e.g., for Astro templates).
 
 Particularly helpful when used in conjunction wth [Astro Composer](https://github.com/davidvkimball/obsidian-astro-composer) Obsidian plugin and the [Astro Modular](https://github.com/davidvkimball/astro-modular) blog theme.
 
@@ -52,7 +52,7 @@ Alias File Name History is not yet available in the Community plugins section. I
    - With `Track folder renames` enabled, rename a parent folder (e.g., `posts/note.md` to `posts-1/note.md`): `posts` is added as an alias.
    - Names matching ignore regexes (e.g., `_note.md` or `_posts`) are skipped.
 3. **Check Aliases**:
-   - View the `aliases` property in the file’s frontmatter or Properties view.
+   - View the `aliases` property in the Properties view.
    - Manually remove aliases without affecting plugin behavior.
 4. **Debugging**:
    - Open Obsidian’s developer console (Ctrl+Shift+I or Cmd+Shift+I) to see logs for added or skipped aliases.

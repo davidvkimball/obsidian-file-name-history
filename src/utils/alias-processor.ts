@@ -62,7 +62,7 @@ export class AliasProcessor {
         const parsed = parseYaml(frontmatterText) as Record<string, unknown> | null | undefined;
         frontmatter = parsed && typeof parsed === 'object' ? parsed : {};
       } catch (e) {
-        console.error(`Error parsing frontmatter:`, e);
+        console.error(`Error parsing properties:`, e);
         frontmatter = {};
       }
     } else {
