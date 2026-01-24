@@ -1,6 +1,6 @@
 # AGENTS
 
-This project uses the OpenSkills system for AI agent guidance.
+This project uses the OpenSkills system for AI agent guidance. General development skills are provided by the [obsidian-dev-skills](https://github.com/davidvkimball/obsidian-dev-skills) repository.
 
 <skills_system priority="1">
 
@@ -11,10 +11,10 @@ This project uses the OpenSkills system for AI agent guidance.
 When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively. Skills provide specialized capabilities and domain knowledge.
 
 How to use skills:
-- Read skill: `cat ./.agent/skills/<skill-name>/SKILL.md`
-  - For multiple: `cat ./.agent/skills/skill-one/SKILL.md ./.agent/skills/skill-two/SKILL.md`
+- Invoke: `npx openskills read <skill-name>` (run in your shell)
+  - For multiple: `npx openskills read skill-one,skill-two`
 - The skill content will load with detailed instructions on how to complete the task
-- Skills are stored locally in ./.agent/skills/ directory
+- Base directory provided in output for resolving bundled resources (references/, scripts/, assets/)
 
 Usage notes:
 - Only use skills listed in <available_skills> below
@@ -26,7 +26,7 @@ Usage notes:
 
 <skill>
 <name>obsidian-dev</name>
-<description>Logic patterns, lifecycle management, and core development rules for Obsidian plugins. Load when editing src/main.ts, implementing new features, or handling plugin lifecycle events.</description>
+<description>Development patterns for Obsidian. Load when implementing features or following coding conventions.</description>
 <location>project</location>
 </skill>
 
@@ -39,12 +39,6 @@ Usage notes:
 <skill>
 <name>obsidian-ref</name>
 <description>Technical references, manifest rules, file formats, and UX guidelines for Obsidian. Load when checking API details, manifest requirements, or UI/UX standards.</description>
-<location>project</location>
-</skill>
-
-<skill>
-<name>project</name>
-<description>Project-specific architecture, maintenance tasks, and unique conventions for this repository. Load when performing project-wide maintenance or working with the core architecture.</description>
 <location>project</location>
 </skill>
 
@@ -64,3 +58,4 @@ Usage notes:
 ## Terminology
 - Use **"properties"** (never "frontmatter" or "front-matter") when referring to YAML metadata at the top of Markdown files.
 - **"Markdown"** is a proper noun and must always be capitalized.
+

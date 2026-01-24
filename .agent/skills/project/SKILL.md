@@ -1,34 +1,35 @@
 ---
 name: project
-description: Project-specific architecture, maintenance tasks, and unique conventions for this repository. Load when performing project-wide maintenance or working with the core architecture.
+description: Project-specific architecture, maintenance tasks, and unique conventions for Alias File Name History.
 ---
 
-# Project Context
+# Alias File Name History Project Skill
 
-This skill provides the unique context and architectural details for the **Obsidian Sample Plugin Plus** repository.
+Store file name history into the aliases property of your notes. This plugin automates the maintenance of aliases by tracking file renames and appending the old names to the `aliases` frontmatter property.
 
-## Purpose
+## Core Architecture
 
-To provide guidance on project-specific structures and tasks that differ from general Obsidian development patterns.
-
-## When to Use
-
-Load this skill when:
-- Understanding the repository's unique architecture.
-- Performing recurring maintenance tasks.
-- Following project-specific coding conventions.
-
-## Project Overview
-
-- **Architecture**: Organized structure with main code in `src/main.ts` and settings in `src/settings.ts`.
-- **Reference Management**: Uses a `.ref` folder with symlinks to centralized Obsidian repositories for API and documentation.
-
-## Maintenance Tasks
-
-- **Sync References**: Run the setup scripts (`scripts/setup-ref-links.*`) to update symlinks to the 6 core Obsidian projects.
-- **Update Skills**: Use `node scripts/update-agents.mjs "Description"` after syncing or updating reference materials.
+- **Event Handling**: Listens to the Obsidian `rename` event to capture filename changes.
+- **Frontmatter Management**: Interacts with `app.fileManager.processFrontMatter` to safely update note metadata.
+- **Workflow**: 
+  1. Detect rename.
+  2. Read existing aliases.
+  3. Append previous name if not already present.
+  4. Save metadata.
 
 ## Project-Specific Conventions
 
-- **Organized Source**: Prefer keeping logic separated into files within `src/` rather than bloating `main.ts`.
-- **Ref Symlinks**: Always use the `.ref/` path when looking up API documentation to ensure parity with the central reference store.
+- **Frontmatter Key**: Always use `aliases`.
+- **History Tracking**: Only append to aliases, never remove existing ones.
+- **Mobile Support**: Fully compatible (no ribbon/complicated UI dependencies).
+
+## Key Files
+
+- `src/main.ts`: Main entry point containing the rename event listener and metadata update logic.
+- `manifest.json`: Configuration settings and id (`alias-file-name-history`).
+- `styles.css`: Minimal styling requirements.
+
+## Maintenance Tasks
+
+- **Metadata Safety**: Verify frontmatter processing logic against latest Obsidian API updates.
+- **Testing**: Ensure renames across different folders are tracked correctly.
