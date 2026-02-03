@@ -9,6 +9,7 @@ interface AliasFilenameHistoryPlugin extends Plugin {
 
 export class AliasFilenameHistorySettingTab extends PluginSettingTab {
   plugin: AliasFilenameHistoryPlugin;
+  public icon = 'lucide-forward';
 
   constructor(app: App, plugin: AliasFilenameHistoryPlugin) {
     super(app, plugin);

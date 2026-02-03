@@ -11,10 +11,9 @@ This project uses the OpenSkills system for AI agent guidance. General developme
 When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively. Skills provide specialized capabilities and domain knowledge.
 
 How to use skills:
-- Invoke: `npx openskills read <skill-name>` (run in your shell)
-  - For multiple: `npx openskills read skill-one,skill-two`
+- Read skill: `cat ./.agent/skills/<skill-name>/SKILL.md`
 - The skill content will load with detailed instructions on how to complete the task
-- Base directory provided in output for resolving bundled resources (references/, scripts/, assets/)
+- Skills are stored locally in ./.agent/skills/ directory
 
 Usage notes:
 - Only use skills listed in <available_skills> below
@@ -26,7 +25,7 @@ Usage notes:
 
 <skill>
 <name>obsidian-dev</name>
-<description>Development patterns for Obsidian. Load when implementing features or following coding conventions.</description>
+<description>Core development patterns for Obsidian plugins. Load when editing src/main.ts, implementing features, handling API calls, or managing plugin lifecycle.</description>
 <location>project</location>
 </skill>
 
@@ -39,6 +38,12 @@ Usage notes:
 <skill>
 <name>obsidian-ref</name>
 <description>Technical references, manifest rules, file formats, and UX guidelines for Obsidian. Load when checking API details, manifest requirements, or UI/UX standards.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>project</name>
+<description>Project-specific architecture, maintenance tasks, and unique conventions for this repository. Load when performing project-wide maintenance or working with the core architecture.</description>
 <location>project</location>
 </skill>
 
