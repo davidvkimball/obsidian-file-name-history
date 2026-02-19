@@ -2,7 +2,7 @@
 
 This plugin tracks file name and parent folder name changes for Markdown files in Obsidian, storing old names as aliases in the file's properties. It supports customizable ignore patterns, debouncing, and folder-specific tracking, making it ideal for generating redirect rules (e.g., for Astro templates).
 
-Particularly helpful when used in conjunction wth [Astro Composer](https://github.com/davidvkimball/obsidian-astro-composer) Obsidian plugin and the [Astro Modular](https://github.com/davidvkimball/astro-modular) blog theme.
+Particularly helpful when used in conjunction with [Astro Composer](https://github.com/davidvkimball/obsidian-astro-composer) Obsidian plugin and the [Astro Modular](https://github.com/davidvkimball/astro-modular) blog theme.
 
 ![alias-file-name-history-preview](https://github.com/user-attachments/assets/173da923-9761-4a7d-b08f-1f39d4722299)
 
