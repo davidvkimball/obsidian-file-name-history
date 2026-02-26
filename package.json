@@ -1,7 +1,7 @@
 {
 	"name": "file-name-history",
 	"version": "0.2.5",
-	"description": "Store file name history into a list property of your notes.",
+	"description": "Store file name or folder name change history into note properties.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
