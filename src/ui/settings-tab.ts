@@ -1,17 +1,17 @@
 import { App, Plugin, PluginSettingTab } from 'obsidian';
-import { AliasFilenameHistorySettings } from '../settings';
+import { FileNameHistorySettings } from '../settings';
 import { createSettingsGroup } from '../utils/settings-compat';
 
-interface AliasFilenameHistoryPlugin extends Plugin {
-  settings: AliasFilenameHistorySettings;
+interface FileNameHistoryPlugin extends Plugin {
+  settings: FileNameHistorySettings;
   saveSettings(): Promise<void>;
 }
 
-export class AliasFilenameHistorySettingTab extends PluginSettingTab {
-  plugin: AliasFilenameHistoryPlugin;
+export class FileNameHistorySettingTab extends PluginSettingTab {
+  plugin: FileNameHistoryPlugin;
   public icon = 'lucide-forward';
 
-  constructor(app: App, plugin: AliasFilenameHistoryPlugin) {
+  constructor(app: App, plugin: FileNameHistoryPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -25,13 +25,28 @@ export class AliasFilenameHistorySettingTab extends PluginSettingTab {
       void this.plugin.saveSettings();
     };
 
-    const generalGroup = createSettingsGroup(containerEl, undefined, 'alias-file-name-history');
+    const generalGroup = createSettingsGroup(containerEl, undefined, 'file-name-history');
 
     // General behavior settings (grouped, no heading)
     generalGroup.addSetting((setting) => {
       setting
+        .setName('History property name')
+        .setDesc('The frontmatter list property to store file name history.')
+        .addText((text) =>
+          text
+            .setPlaceholder('Aliases')
+            .setValue(this.plugin.settings.historyPropertyName)
+            .onChange((value) => {
+              this.plugin.settings.historyPropertyName = value || 'aliases';
+              saveSettings();
+            })
+        );
+    });
+
+    generalGroup.addSetting((setting) => {
+      setting
         .setName('Timeout seconds')
-        .setDesc('Time in seconds the name must be stable before adding aliases.')
+        .setDesc('Time in seconds the name must be stable before adding to the configured property.')
         .addSlider((slider) =>
           slider
             .setLimits(1, 20, 1)
@@ -47,8 +62,8 @@ export class AliasFilenameHistorySettingTab extends PluginSettingTab {
     generalGroup.addSetting((setting) => {
       setting
         .setName('Case-sensitive uniqueness')
-        // eslint-disable-next-line obsidianmd/ui/sentence-case
-        .setDesc('If enabled, treat note and Note as different aliases.')
+
+        .setDesc('If enabled, treat case differences as unique values in the configured property.')
         .addToggle((toggle) =>
           toggle
             .setValue(this.plugin.settings.caseSensitive)
@@ -62,7 +77,7 @@ export class AliasFilenameHistorySettingTab extends PluginSettingTab {
     generalGroup.addSetting((setting) => {
       setting
         .setName('Auto-create properties')
-        .setDesc('Automatically create properties with aliases if missing.')
+        .setDesc('Automatically create the configured property if missing.')
         .addToggle((toggle) =>
           toggle
             .setValue(this.plugin.settings.autoCreateFrontmatter)
@@ -79,8 +94,8 @@ export class AliasFilenameHistorySettingTab extends PluginSettingTab {
         .setDesc('Comma-separated list of file extensions to track.')
         .addText((text) =>
           text
-            // eslint-disable-next-line obsidianmd/ui/sentence-case
-            .setPlaceholder('md, txt')
+
+            .setPlaceholder('Md, txt')
             .setValue(this.plugin.settings.fileExtensions.join(','))
             .onChange((value) => {
               this.plugin.settings.fileExtensions = value
@@ -92,9 +107,9 @@ export class AliasFilenameHistorySettingTab extends PluginSettingTab {
         );
     });
 
-    const filteringGroup = createSettingsGroup(containerEl, 'Filtering', 'alias-file-name-history');
-    const foldersGroup = createSettingsGroup(containerEl, 'Folders', 'alias-file-name-history');
-    const advancedGroup = createSettingsGroup(containerEl, 'Advanced', 'alias-file-name-history');
+    const filteringGroup = createSettingsGroup(containerEl, 'Filtering', 'file-name-history');
+    const foldersGroup = createSettingsGroup(containerEl, 'Folders', 'file-name-history');
+    const advancedGroup = createSettingsGroup(containerEl, 'Advanced', 'file-name-history');
 
     // Filtering settings
     filteringGroup.addSetting((setting) => {
@@ -125,8 +140,8 @@ export class AliasFilenameHistorySettingTab extends PluginSettingTab {
         )
         .addText((text) =>
           text
-            // eslint-disable-next-line obsidianmd/ui/sentence-case
-            .setPlaceholder('skip-rename-tracking')
+
+            .setPlaceholder('Skip-rename-tracking')
             .setValue(this.plugin.settings.excludePropertyName)
             .onChange((value) => {
               this.plugin.settings.excludePropertyName = value;
@@ -179,13 +194,13 @@ export class AliasFilenameHistorySettingTab extends PluginSettingTab {
       setting
         .setName('Track folder renames for specific file name')
         .setDesc(
-          // eslint-disable-next-line obsidianmd/ui/sentence-case
-          'If a markdown file matches this file name, store old immediate parent folder names as aliases when parent folders are renamed.'
+
+          'If a Markdown file matches this file name, store old immediate parent folder names in the configured property when parent folders are renamed.'
         )
         .addText((text) =>
           text
-            // eslint-disable-next-line obsidianmd/ui/sentence-case
-            .setPlaceholder('index')
+
+            .setPlaceholder('Index')
             .setValue(this.plugin.settings.trackFolderRenames)
             .onChange((value) => {
               this.plugin.settings.trackFolderRenames = value;

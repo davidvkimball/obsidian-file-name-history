@@ -1,18 +1,18 @@
 import { Plugin, TAbstractFile, TFile } from 'obsidian';
-import { AliasFilenameHistorySettings, DEFAULT_SETTINGS } from './settings';
-import { AliasFilenameHistorySettingTab } from './ui/settings-tab';
-import { AliasProcessor } from './utils/alias-processor';
+import { FileNameHistorySettings, DEFAULT_SETTINGS } from './settings';
+import { FileNameHistorySettingTab } from './ui/settings-tab';
+import { HistoryProcessor } from './utils/history-processor';
 import { getBasename, getImmediateParentName } from './utils/path-utils';
 
-export default class AliasFilenameHistoryPlugin extends Plugin {
-  settings: AliasFilenameHistorySettings;
+export default class FileNameHistoryPlugin extends Plugin {
+  settings: FileNameHistorySettings;
   private debounceMap: Map<string, { queue: Set<string>; timeoutId: number; currentPath: string }> = new Map();
-  private aliasProcessor: AliasProcessor;
+  private historyProcessor: HistoryProcessor;
 
   async onload() {
     await this.loadSettings();
-    this.aliasProcessor = new AliasProcessor(this.app, this.settings);
-    this.addSettingTab(new AliasFilenameHistorySettingTab(this.app, this));
+    this.historyProcessor = new HistoryProcessor(this.app, this.settings);
+    this.addSettingTab(new FileNameHistorySettingTab(this.app, this));
     this.registerEvent(
       this.app.vault.on('rename', (file: TAbstractFile, oldPath: string) => {
         this.handleRename(file, oldPath);
@@ -31,7 +31,7 @@ export default class AliasFilenameHistoryPlugin extends Plugin {
   }
 
   async loadSettings() {
-    const loadedData = (await this.loadData()) as Partial<AliasFilenameHistorySettings> | null;
+    const loadedData = (await this.loadData()) as Partial<FileNameHistorySettings> | null;
     this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
   }
 
@@ -52,7 +52,7 @@ export default class AliasFilenameHistoryPlugin extends Plugin {
       // Otherwise, replace the variable and check normally
       return path.startsWith(resolvedFolder + '/') || path === resolvedFolder;
     }
-    
+
     // Normal folder matching
     return path.startsWith(folder + '/') || path === folder;
   }
@@ -85,7 +85,7 @@ export default class AliasFilenameHistoryPlugin extends Plugin {
       // Don't exclude files directly in the base folder (no slash)
       return pathAfterBase.includes('/');
     }
-    
+
     // Normal folder matching
     return path.startsWith(excludePattern + '/') || path === excludePattern;
   }
@@ -109,10 +109,10 @@ export default class AliasFilenameHistoryPlugin extends Plugin {
     }
 
     const path = newFile.path;
-    
+
     // Apply filtering checks to both file name changes and folder renames
     // Priority: Property exclusion -> Include folders -> Exclude folders
-    
+
     // 1. Check property-based exclusion first (highest priority)
     if (this.settings.excludePropertyName && this.settings.excludePropertyName.trim() !== '') {
       const cache = this.app.metadataCache.getFileCache(newFile);
@@ -121,24 +121,24 @@ export default class AliasFilenameHistoryPlugin extends Plugin {
         return; // Exclude this file
       }
     }
-    
+
     // 2. Check include folders (if includeFolders is not empty, only include those)
     if (this.settings.includeFolders.length > 0) {
       if (!this.settings.includeFolders.some(f => this.isPathInFolder(path, f))) {
         return; // Not in any included folder
       }
     }
-    
+
     // 3. Check exclude folders (with wildcard support)
     // Special case: if tracking folder renames for a specific file name, allow it even in excluded subfolders
     // unless using recursive exclusion (**) or the file is nested deeper than one level
-    const isIndexFileForFolderRename = isFolderChange && 
-      this.settings.trackFolderRenames && 
+    const isIndexFileForFolderRename = isFolderChange &&
+      this.settings.trackFolderRenames &&
       this.settings.trackFolderRenames.trim() !== '' &&
-      (this.settings.caseSensitive 
+      (this.settings.caseSensitive
         ? newFile.basename === this.settings.trackFolderRenames
         : newFile.basename.toLowerCase() === this.settings.trackFolderRenames.toLowerCase());
-    
+
     for (const excludePattern of this.settings.excludeFolders) {
       if (this.isPathExcluded(path, excludePattern)) {
         // If this is an index file for folder rename tracking, and the pattern is /* (not /**),
@@ -179,14 +179,14 @@ export default class AliasFilenameHistoryPlugin extends Plugin {
     } else if (isFolderChange && this.settings.trackFolderRenames && this.settings.trackFolderRenames.trim() !== '') {
       // Check if the current file name matches the specified name (without extension)
       const currentBasename = newFile.basename;
-      const matchesFilename = this.settings.caseSensitive 
+      const matchesFilename = this.settings.caseSensitive
         ? currentBasename === this.settings.trackFolderRenames
         : currentBasename.toLowerCase() === this.settings.trackFolderRenames.toLowerCase();
-      
+
       if (!matchesFilename) {
         return;
       }
-      
+
       if (oldImmediateParentName === '' || newImmediateParentName === '') {
         return;
       }
@@ -209,29 +209,29 @@ export default class AliasFilenameHistoryPlugin extends Plugin {
         this.debounceMap.delete(oldPath);
       }
     }
-    
+
     if (existingEntry) {
       // File was renamed again before timeout expired - cancel the previous timeout
       if (existingEntry.timeoutId !== 0) {
         window.clearTimeout(existingEntry.timeoutId);
       }
-      
+
       // Use the original stable name from the previous timeout, not the temporary name
       toQueue = Array.from(existingEntry.queue)[0]; // Use the original stable name
     }
 
     // Create entry to track the timeout
-    const entry = { 
-      queue: new Set<string>([toQueue]), 
-      timeoutId: 0, 
-      currentPath: newFile.path 
+    const entry = {
+      queue: new Set<string>([toQueue]),
+      timeoutId: 0,
+      currentPath: newFile.path
     };
 
     // Set timeout to actually store the alias after the debounce period
     entry.timeoutId = window.setTimeout(() => {
       void (async () => {
         try {
-          await this.aliasProcessor.processAliases(entry.currentPath, entry.queue);
+          await this.historyProcessor.processAliases(entry.currentPath, entry.queue);
         } catch (error) {
           console.error('Error processing aliases:', error);
         }

@@ -1,4 +1,5 @@
-export interface AliasFilenameHistorySettings {
+export interface FileNameHistorySettings {
+  historyPropertyName: string;
   ignoreRegexes: string[];
   timeoutSeconds: number;
   caseSensitive: boolean;
@@ -10,7 +11,8 @@ export interface AliasFilenameHistorySettings {
   excludePropertyName: string;
 }
 
-export const DEFAULT_SETTINGS: AliasFilenameHistorySettings = {
+export const DEFAULT_SETTINGS: FileNameHistorySettings = {
+  historyPropertyName: 'aliases',
   ignoreRegexes: ['^_', '^Untitled$', '^Untitled \\d+$'],
   timeoutSeconds: 5,
   caseSensitive: false,

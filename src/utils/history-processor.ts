@@ -1,11 +1,11 @@
 import { App, stringifyYaml, parseYaml } from 'obsidian';
-import { AliasFilenameHistorySettings } from '../settings';
+import { FileNameHistorySettings } from '../settings';
 
-export class AliasProcessor {
+export class HistoryProcessor {
   constructor(
     private app: App,
-    private settings: AliasFilenameHistorySettings
-  ) {}
+    private settings: FileNameHistorySettings
+  ) { }
 
   private async processAliasesManually(path: string, queue: Set<string>): Promise<void> {
     const file = this.app.vault.getFileByPath(path);
@@ -70,7 +70,7 @@ export class AliasProcessor {
     }
 
     // Get or create aliases array
-    let aliases = frontmatter.aliases;
+    let aliases = frontmatter[this.settings.historyPropertyName];
     if (!Array.isArray(aliases)) {
       const hasFrontmatter = Object.keys(frontmatter).length > 0;
       if (hasFrontmatter && !this.settings.autoCreateFrontmatter) {
@@ -99,7 +99,7 @@ export class AliasProcessor {
     }
 
     // Update frontmatter
-    frontmatter.aliases = aliasesArray;
+    frontmatter[this.settings.historyPropertyName] = aliasesArray;
 
     // Stringify frontmatter
     const newFrontmatterText = stringifyYaml(frontmatter).trim();
@@ -153,7 +153,7 @@ export class AliasProcessor {
     }
 
     await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
-      let aliases = fm.aliases;
+      let aliases = fm[this.settings.historyPropertyName];
       if (!Array.isArray(aliases)) {
         // If there's no frontmatter at all, we need to create it to add aliases
         // If there's frontmatter but no aliases property, respect the autoCreateFrontmatter setting
@@ -162,7 +162,7 @@ export class AliasProcessor {
           return;
         }
         aliases = [];
-        fm.aliases = aliases;
+        fm[this.settings.historyPropertyName] = aliases;
       }
 
       const aliasesArray = aliases as string[];
