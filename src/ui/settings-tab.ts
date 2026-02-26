@@ -31,10 +31,10 @@ export class FileNameHistorySettingTab extends PluginSettingTab {
     generalGroup.addSetting((setting) => {
       setting
         .setName('History property name')
-        .setDesc('The frontmatter list property to store file name history.')
+        .setDesc('The list property to store file name history.')
         .addText((text) =>
           text
-            .setPlaceholder('Aliases')
+            .setPlaceholder('aliases')
             .setValue(this.plugin.settings.historyPropertyName)
             .onChange((value) => {
               this.plugin.settings.historyPropertyName = value || 'aliases';
@@ -76,7 +76,7 @@ export class FileNameHistorySettingTab extends PluginSettingTab {
 
     generalGroup.addSetting((setting) => {
       setting
-        .setName('Auto-create properties')
+        .setName('Auto-create history property')
         .setDesc('Automatically create the configured property if missing.')
         .addToggle((toggle) =>
           toggle
