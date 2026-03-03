@@ -1,6 +1,6 @@
-import { App, Plugin, PluginSettingTab } from 'obsidian';
+import { App, Plugin, PluginSettingTab , SettingGroup} from 'obsidian';
 import { FileNameHistorySettings } from '../settings';
-import { createSettingsGroup } from '../utils/settings-compat';
+
 
 interface FileNameHistoryPlugin extends Plugin {
   settings: FileNameHistorySettings;
@@ -25,125 +25,125 @@ export class FileNameHistorySettingTab extends PluginSettingTab {
       void this.plugin.saveSettings();
     };
 
-    const generalGroup = createSettingsGroup(containerEl, undefined, 'file-name-history');
+    const generalGroup = new SettingGroup(containerEl);
 
     // General behavior settings (grouped, no heading)
-    generalGroup.addSetting((setting) => {
+    generalGroup.addSetting((setting: any) => {
       setting
         .setName('History property name')
         .setDesc('The list property to store file name history.')
-        .addText((text) =>
+        .addText((text: any) =>
           text
             .setPlaceholder('aliases')
             .setValue(this.plugin.settings.historyPropertyName)
-            .onChange((value) => {
+            .onChange((value: any) => {
               this.plugin.settings.historyPropertyName = value || 'aliases';
               saveSettings();
             })
         );
     });
 
-    generalGroup.addSetting((setting) => {
+    generalGroup.addSetting((setting: any) => {
       setting
         .setName('Timeout seconds')
         .setDesc('Time in seconds the name must be stable before adding to the configured property.')
-        .addSlider((slider) =>
+        .addSlider((slider: any) =>
           slider
             .setLimits(1, 20, 1)
             .setValue(this.plugin.settings.timeoutSeconds)
             .setDynamicTooltip()
-            .onChange((value) => {
+            .onChange((value: any) => {
               this.plugin.settings.timeoutSeconds = value;
               saveSettings();
             })
         );
     });
 
-    generalGroup.addSetting((setting) => {
+    generalGroup.addSetting((setting: any) => {
       setting
         .setName('Case-sensitive uniqueness')
 
         .setDesc('If enabled, treat case differences as unique values in the configured property.')
-        .addToggle((toggle) =>
+        .addToggle((toggle: any) =>
           toggle
             .setValue(this.plugin.settings.caseSensitive)
-            .onChange((value) => {
+            .onChange((value: any) => {
               this.plugin.settings.caseSensitive = value;
               saveSettings();
             })
         );
     });
 
-    generalGroup.addSetting((setting) => {
+    generalGroup.addSetting((setting: any) => {
       setting
         .setName('Auto-create history property')
         .setDesc('Automatically create the configured property if missing.')
-        .addToggle((toggle) =>
+        .addToggle((toggle: any) =>
           toggle
             .setValue(this.plugin.settings.autoCreateFrontmatter)
-            .onChange((value) => {
+            .onChange((value: any) => {
               this.plugin.settings.autoCreateFrontmatter = value;
               saveSettings();
             })
         );
     });
 
-    generalGroup.addSetting((setting) => {
+    generalGroup.addSetting((setting: any) => {
       setting
         .setName('File extensions')
         .setDesc('Comma-separated list of file extensions to track.')
-        .addText((text) =>
+        .addText((text: any) =>
           text
 
             .setPlaceholder('Md, txt')
             .setValue(this.plugin.settings.fileExtensions.join(','))
-            .onChange((value) => {
+            .onChange((value: any) => {
               this.plugin.settings.fileExtensions = value
                 .split(',')
-                .map((s) => s.trim())
-                .filter((s) => s);
+                .map((s: any) => s.trim())
+                .filter((s: any) => s);
               saveSettings();
             })
         );
     });
 
-    const filteringGroup = createSettingsGroup(containerEl, 'Filtering', 'file-name-history');
-    const foldersGroup = createSettingsGroup(containerEl, 'Folders', 'file-name-history');
-    const advancedGroup = createSettingsGroup(containerEl, 'Advanced', 'file-name-history');
+    const filteringGroup = new SettingGroup(containerEl).setHeading('Filtering');
+    const foldersGroup = new SettingGroup(containerEl).setHeading('Folders');
+    const advancedGroup = new SettingGroup(containerEl).setHeading('Advanced');
 
     // Filtering settings
-    filteringGroup.addSetting((setting) => {
+    filteringGroup.addSetting((setting: any) => {
       setting
         .setName('Ignore regex patterns')
         .setDesc(
           'Comma-separated regex patterns for file names or immediate parent folder names to ignore (e.g., ^_ for underscore prefixes, ^untitled$ for untitled). Leave empty to disable.'
         )
-        .addText((text) =>
+        .addText((text: any) =>
           text
             .setPlaceholder('^_, ^untitled$, ^untitled \\d+$')
             .setValue(this.plugin.settings.ignoreRegexes.join(','))
-            .onChange((value) => {
+            .onChange((value: any) => {
               this.plugin.settings.ignoreRegexes = value
                 .split(',')
-                .map((s) => s.trim())
-                .filter((s) => s);
+                .map((s: any) => s.trim())
+                .filter((s: any) => s);
               saveSettings();
             })
         );
     });
 
-    filteringGroup.addSetting((setting) => {
+    filteringGroup.addSetting((setting: any) => {
       setting
         .setName('Exclude property name')
         .setDesc(
           'Name of a boolean property to check in files. Files with this property set to true will be excluded from tracking. Takes priority over folder filtering.'
         )
-        .addText((text) =>
+        .addText((text: any) =>
           text
 
             .setPlaceholder('Skip-rename-tracking')
             .setValue(this.plugin.settings.excludePropertyName)
-            .onChange((value) => {
+            .onChange((value: any) => {
               this.plugin.settings.excludePropertyName = value;
               saveSettings();
             })
@@ -151,58 +151,58 @@ export class FileNameHistorySettingTab extends PluginSettingTab {
     });
 
     // Folder include/exclude settings
-    foldersGroup.addSetting((setting) => {
+    foldersGroup.addSetting((setting: any) => {
       setting
         .setName('Include folders')
         .setDesc(
           'Comma-separated list of folder paths to include. If empty, all folders are included. Use {vault} or {root} to include only files directly in the vault root (no subfolders).'
         )
-        .addText((text) =>
+        .addText((text: any) =>
           text
             .setValue(this.plugin.settings.includeFolders.join(','))
-            .onChange((value) => {
+            .onChange((value: any) => {
               this.plugin.settings.includeFolders = value
                 .split(',')
-                .map((s) => s.trim())
-                .filter((s) => s);
+                .map((s: any) => s.trim())
+                .filter((s: any) => s);
               saveSettings();
             })
         );
     });
 
-    foldersGroup.addSetting((setting) => {
+    foldersGroup.addSetting((setting: any) => {
       setting
         .setName('Exclude folders')
         .setDesc(
           'Comma-separated list of folder paths to exclude. Supports wildcards: use "folder/*" to exclude direct children, "folder/**" to exclude all descendants. Use {vault} or {root} to exclude files directly in the vault root.'
         )
-        .addText((text) =>
+        .addText((text: any) =>
           text
             .setValue(this.plugin.settings.excludeFolders.join(','))
-            .onChange((value) => {
+            .onChange((value: any) => {
               this.plugin.settings.excludeFolders = value
                 .split(',')
-                .map((s) => s.trim())
-                .filter((s) => s);
+                .map((s: any) => s.trim())
+                .filter((s: any) => s);
               saveSettings();
             })
         );
     });
 
     // Advanced / niche options
-    advancedGroup.addSetting((setting) => {
+    advancedGroup.addSetting((setting: any) => {
       setting
         .setName('Track folder renames for specific file name')
         .setDesc(
 
           'If a Markdown file matches this file name, store old immediate parent folder names in the configured property when parent folders are renamed.'
         )
-        .addText((text) =>
+        .addText((text: any) =>
           text
 
             .setPlaceholder('Index')
             .setValue(this.plugin.settings.trackFolderRenames)
-            .onChange((value) => {
+            .onChange((value: any) => {
               this.plugin.settings.trackFolderRenames = value;
               saveSettings();
             })
