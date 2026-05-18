@@ -52,6 +52,10 @@ export default defineConfig([
       "no-console": ["error", { "allow": ["warn", "error", "debug"] }],
       // Require await in async functions (matches Obsidian bot)
       "@typescript-eslint/require-await": "error",
+      // Noisy rule with frequent false positives on legitimate UI text
+      // (brand names, example URLs, identifier placeholders). Disabled
+      // locally; the Obsidian scorecard bot runs its own config regardless.
+      "obsidianmd/ui/sentence-case": "off",
     },
   },
   {
